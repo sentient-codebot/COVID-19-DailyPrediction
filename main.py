@@ -1,15 +1,22 @@
 from ARMA import ARModel
+from RIM import RIMCell
 import torch
 import torch.nn as nn
 from tqdm import tqdm
 from Data import COVID19Daily
 from torch.utils.data import DataLoader
 import argparse
+import pandas as pd
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('--p', type = float, default = 10)
-parser.add_argument('--epochs', type = int, default = 100)
+parser.add_argument('--p', type=float, default=10)
+parser.add_argument('--epochs', type=int, default=100)
+parser.add_argument('--model', type=str, default='AR')
+parser.add_argument('--hidden_size', type=int, default=50)
+parser.add_argument('--num_units', type=int, default=6)
+parser.add_argument('--k', type=int, default=2)
+
 
 args = vars(parser.parse_args())
 torch.cuda.manual_seed(10)
@@ -58,14 +65,26 @@ def test_model(model, val_data):
 def main():
     fullfile = "data/COVID-19_aantallen_nationale_per_dag.csv"
     trainset = COVID19Daily(fullfile, args["p"])
-    trainloader = DataLoader(trainset, batch_size=32, shuffle=True)
+    trainloader = DataLoader(trainset, batch_size=32, shuffle=False)
 
-    model = ARModel(p = args["p"])
-
+    if args['model'] == 'AR':
+        model = ARModel(p = args["p"])
+    else:
+        model = RIMCell(torch.device('cpu'), 
+                        args['p'], args['hidden_size'], args['num_units'], args['k'], 'LSTM')
+    
     train_model(model, args['epochs'], trainloader, trainloader)
 
     error = test_model(model, trainloader)
     print(f"average error after training is: {error*100}%")
+
+    model.eval()
+    df = pd.read_csv(fullfile)
+    past = torch.tensor(df.tail(args['p']+1).iloc[:,-1].to_numpy()).reshape(1,-1)
+    pred_today = model(past[:, :-1])
+    pred_tmr = model(past[:, 1:])
+    print(f"pred today: {pred_today}, actual today: {past[:, -1]}")
+    print(f"pred tomorrow: {pred_tmr}")
 
 if __name__ == "__main__":
     main()
