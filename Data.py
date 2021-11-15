@@ -1,24 +1,34 @@
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
+import torch
 import os
 import pandas as pd
 from torchvision.io import read_image
 
 class COVID19Daily(Dataset):
-    def __init__(self, annotations_file, ):
-        self.img_labels = pd.read_csv(annotations_file)
-        self.img_dir = img_dir
-        self.transform = transform
-        self.target_transform = target_transform
+    def __init__(self, csv_file, segment_length):
+        self.df = pd.read_csv(csv_file)
+        self.segment_length = segment_length
 
     def __len__(self):
-        return len(self.img_labels)
+        return len(self.df)-self.segment_length # reserve the last as the last LABEL
 
     def __getitem__(self, idx):
-        img_path = os.path.join(self.img_dir, self.img_labels.iloc[idx, 0])
-        image = read_image(img_path)
-        label = self.img_labels.iloc[idx, 1]
-        if self.transform:
-            image = self.transform(image)
-        if self.target_transform:
-            label = self.target_transform(label)
-        return image, label
+        ''' idx: starting index '''
+        past_seq = self.df.iloc[idx:idx+self.segment_length, -1].to_numpy()
+        present = self.df.iloc[idx+self.segment_length, -1] # series, already numpy (?)
+
+        return torch.tensor(past_seq).float(), torch.tensor(present).reshape(1).float()
+
+def main():
+    filename = "data/COVID-19_aantallen_nationale_per_dag.csv"
+    dataset = COVID19Daily(filename, 10)
+    get = next(iter(dataset))
+    print(f"DATASET returned item: {get[0].shape}, {get[1].shape}")
+
+    dataloader = DataLoader(dataset, batch_size=32, shuffle=True)
+    get = next(iter(dataloader))
+    print(f"DATALOADER returned item: {get[0].shape}, {get[1].shape}")
+
+
+if __name__ == "__main__":
+    main()

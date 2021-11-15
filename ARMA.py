@@ -5,7 +5,7 @@ class ARModel(nn.Module):
     def __init__(self, p=1):
         super().__init__()
         self.bias = nn.parameter.Parameter(data=torch.zeros((1, 1)))
-        self.a = nn.parameter.Parameter(data=torch.zeros((1, p)))
+        self.a = nn.parameter.Parameter(data=torch.randn((1, p)))
 
     def forward(self, x_past):
         '''
