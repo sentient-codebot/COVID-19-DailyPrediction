@@ -5,13 +5,14 @@ import torch.nn as nn
 from tqdm import tqdm
 from Data import COVID19Daily
 from torch.utils.data import DataLoader
+from torch.utils.tensorboard import SummaryWriter
 import argparse
 import pandas as pd
 
 parser = argparse.ArgumentParser()
 
 parser.add_argument('--p', type=int, default=10)
-parser.add_argument('--epochs', type=int, default=100)
+parser.add_argument('--epochs', type=int, default=150)
 parser.add_argument('--model', type=str, default='AR')
 parser.add_argument('--hidden_size', type=int, default=10)
 parser.add_argument('--num_units', type=int, default=4)
@@ -24,6 +25,8 @@ args = vars(parser.parse_args())
 torch.cuda.manual_seed(10)
 
 loss_function = nn.MSELoss()
+
+writer = SummaryWriter()
 
 def train_model(model, epochs, train_data, val_data=None):
     acc=0.0
@@ -51,6 +54,7 @@ def train_model(model, epochs, train_data, val_data=None):
         # print(f"epoch loss: {epoch_loss}")
         mean_error = test_model(model, val_data)
         print(f"{epoch}: epoch error: {mean_error*100: .2f}%")
+        writer.add_scalar('Error/train', mean_error*100, epoch)
 
 def test_model(model, val_data):
     mean_error = 0
