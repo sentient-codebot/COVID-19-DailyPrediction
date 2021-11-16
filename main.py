@@ -1,5 +1,5 @@
 from ARMA import ARModel
-from RIM import RIMCell
+from NNModel import RIMModel
 import torch
 import torch.nn as nn
 from tqdm import tqdm
@@ -10,12 +10,13 @@ import pandas as pd
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('--p', type=float, default=10)
+parser.add_argument('--p', type=int, default=10)
 parser.add_argument('--epochs', type=int, default=100)
 parser.add_argument('--model', type=str, default='AR')
-parser.add_argument('--hidden_size', type=int, default=50)
-parser.add_argument('--num_units', type=int, default=6)
+parser.add_argument('--hidden_size', type=int, default=10)
+parser.add_argument('--num_units', type=int, default=4)
 parser.add_argument('--k', type=int, default=2)
+parser.add_argument('--lr', type=float, default=0.02)
 
 
 args = vars(parser.parse_args())
@@ -27,7 +28,7 @@ def train_model(model, epochs, train_data, val_data=None):
     acc=0.0
     best_acc= 0.0
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.02)
+    optimizer = torch.optim.Adam(model.parameters(), lr=args['lr'])
 
     for epoch in range(epochs):
         epoch_loss = 0.
@@ -65,13 +66,13 @@ def test_model(model, val_data):
 def main():
     fullfile = "data/COVID-19_aantallen_nationale_per_dag.csv"
     trainset = COVID19Daily(fullfile, args["p"])
-    trainloader = DataLoader(trainset, batch_size=32, shuffle=False)
+    trainloader = DataLoader(trainset, batch_size=32, shuffle=True)
 
     if args['model'] == 'AR':
         model = ARModel(p = args["p"])
     else:
-        model = RIMCell(torch.device('cpu'), 
-                        args['p'], args['hidden_size'], args['num_units'], args['k'], 'LSTM')
+        model = RIMModel(torch.device('cpu'), 
+                        args['hidden_size'], args['num_units'], args['k'], 'LSTM')
     
     train_model(model, args['epochs'], trainloader, trainloader)
 
