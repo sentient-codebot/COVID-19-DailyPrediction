@@ -5,7 +5,50 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "MLPModel",
+            "name": "Prediction: AR",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--model",
+                "AR"
+            ]
+        },
+        {
+            "name": "Train: AR",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--model",
+                "AR",
+                "--p",
+                "10",
+                "--lr",
+                "0.02",
+                "--epochs",
+                "150"
+            ]
+        },
+        {
+            "name": "Prediction: MLP",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--model",
+                "MLP",
+                "--p",
+                "10",
+                "--hidden_size",
+                "10"
+            ]
+        },
+        {
+            "name": "Train: MLPModel",
             "type": "python",
             "request": "launch",
             "program": "${file}",

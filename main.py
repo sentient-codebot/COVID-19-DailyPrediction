@@ -7,7 +7,9 @@ from Data import COVID19Daily
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 import argparse
+# import pickle
 import pandas as pd
+import matplotlib.pyplot as plt
 
 parser = argparse.ArgumentParser()
 
@@ -23,6 +25,8 @@ parser.add_argument('--weight_decay', type=float, default=0)
 
 args = vars(parser.parse_args())
 torch.cuda.manual_seed(10)
+
+log_dir = 'logs'
 
 loss_function = nn.MSELoss()
 
@@ -55,6 +59,15 @@ def train_model(model, epochs, train_data, val_data=None):
         mean_error = test_model(model, val_data)
         print(f"{epoch}: epoch error: {mean_error*100: .2f}%")
         writer.add_scalar('Error/train', mean_error*100, epoch)
+    
+    state_current = {
+        'net': model.state_dict(),	
+        'epoch':epoch,
+        'error':mean_error
+    }
+    with open(log_dir + f'/current_{args["model"]}_model.pt', 'wb') as f:
+        torch.save(state_current, f)
+    
 
 def test_model(model, val_data):
     mean_error = 0
