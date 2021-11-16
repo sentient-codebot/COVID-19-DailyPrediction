@@ -5,19 +5,47 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "MLPModel",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--model",
+                "MLP",
+                "--p",
+                "10",
+                "--hidden_size",
+                "10",
+                "--epochs",
+                "100",
+                "--lr",
+                "0.001"
+            ]
+        },
+        {
             "name": "LSTM RIM on cpu",
             "type": "python",
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
             "args": [
-                "--p", "30",
-                "--epochs", "150",
-                "--model", "RIM",
-                "--hidden_size", "50",
-                "--num_units", "1",
-                "--k", "1",
-                "--lr", "0.0001"
+                "--p",
+                "10",
+                "--epochs",
+                "150",
+                "--model",
+                "RIM",
+                "--hidden_size",
+                "1",
+                "--num_units",
+                "1",
+                "--k",
+                "1",
+                "--lr",
+                "0.01",
+                "--weight_decay",
+                "0.05"
             ]
         }
     ]

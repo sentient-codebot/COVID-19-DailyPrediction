@@ -25,3 +25,21 @@ class RIMModel(nn.Module):
         pred = self.out_linear(hs.reshape(past.shape[0], -1))
 
         return pred
+
+class MLPModel(nn.Module):
+    '''
+    one-layer MLP
+    '''
+    def __init__(self, device, p, hidden_size):
+        super().__init__()
+        self.hidden_linear = nn.Linear(p, hidden_size)
+        self.out_linear = nn.Linear(hidden_size, 1)
+        self.relu = nn.ReLU()
+
+    def forward(self, past):
+        hidden = self.hidden_linear(past)
+        hidden = self.relu(hidden)
+        out = self.out_linear(hidden)
+        out = self.relu(out)
+
+        return out
