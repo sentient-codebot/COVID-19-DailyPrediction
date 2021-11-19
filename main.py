@@ -3,7 +3,7 @@ from NNModel import RIMModel, MLPModel
 import torch
 import torch.nn as nn
 from tqdm import tqdm
-from Data import COVID19Daily
+from Data import COVID19Daily, COVID19Average
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 import argparse
@@ -24,7 +24,7 @@ parser.add_argument('--weight_decay', type=float, default=0)
 
 
 args = vars(parser.parse_args())
-torch.cuda.manual_seed(100)
+torch.cuda.manual_seed(111)
 
 log_dir = 'logs'
 
@@ -67,8 +67,8 @@ def train_model(model, epochs, train_data, val_data=None):
         'epoch':epoch,
         'error':mean_error
     }
-    with open(log_dir + f'/current_{args["model"]}_model.pt', 'wb') as f:
-        torch.save(state_current, f)
+    # with open(log_dir + f'/current_{args["model"]}_model.pt', 'wb') as f:
+    #     torch.save(state_current, f)
     
 
 def test_model(model, val_data):
