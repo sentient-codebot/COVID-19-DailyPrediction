@@ -34,12 +34,12 @@ class MLPModel(nn.Module):
         super().__init__()
         self.hidden_linear = nn.Linear(p, hidden_size)
         self.out_linear = nn.Linear(hidden_size, 1)
-        self.relu = nn.ReLU()
+        self.activation = nn.ReLU()
 
     def forward(self, past):
         hidden = self.hidden_linear(past)
-        hidden = self.relu(hidden)
+        hidden = self.activation(hidden)
         out = self.out_linear(hidden)
-        out = self.relu(out)
+        out = self.activation(out)
 
         return out

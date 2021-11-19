@@ -24,7 +24,7 @@ parser.add_argument('--weight_decay', type=float, default=0)
 
 
 args = vars(parser.parse_args())
-torch.cuda.manual_seed(10)
+torch.cuda.manual_seed(100)
 
 log_dir = 'logs'
 
@@ -38,6 +38,7 @@ def train_model(model, epochs, train_data, val_data=None):
 
     optimizer = torch.optim.Adam(model.parameters(), 
                                 lr=args['lr'], weight_decay=args['weight_decay'])
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, threshold=0.005)
 
     for epoch in range(epochs):
         epoch_loss = 0.
@@ -59,6 +60,7 @@ def train_model(model, epochs, train_data, val_data=None):
         mean_error = test_model(model, val_data)
         print(f"{epoch}: epoch error: {mean_error*100: .2f}%")
         writer.add_scalar('Error/train', mean_error*100, epoch)
+        scheduler.step(mean_error)
     
     state_current = {
         'net': model.state_dict(),	
