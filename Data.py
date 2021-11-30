@@ -26,6 +26,7 @@ class COVID19Average(Dataset):
     y: average of future 7 seven days (including today)
     '''
     def __init__(self, csv_file, segment_length):
+        super().__init__()
         self.df = pd.read_csv(csv_file)
         self.segment_length = segment_length
 
