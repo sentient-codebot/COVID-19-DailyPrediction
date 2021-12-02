@@ -47,6 +47,7 @@ def train_model(model, epochs, train_data, val_data=None):
             pred = model(past)
             loss = loss_function(present, pred)
 
+            
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
