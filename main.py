@@ -68,8 +68,8 @@ def train_model(model, epochs, train_data, val_data=None):
         'epoch':epoch,
         'error':mean_error
     }
-    # with open(log_dir + f'/current_{args["model"]}_model.pt', 'wb') as f:
-    #     torch.save(state_current, f)
+    with open(log_dir + f'/current_{args["model"]}_model.pt', 'wb') as f:
+        torch.save(state_current, f)
     
 
 def test_model(model, val_data):
