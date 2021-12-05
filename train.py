@@ -13,20 +13,26 @@ import matplotlib.pyplot as plt
 
 parser = argparse.ArgumentParser()
 
+parser.add_argument('--cuda', action='store_true', default=False)
 parser.add_argument('--p', type=int, default=10)
 parser.add_argument('--epochs', type=int, default=150)
 parser.add_argument('--model', type=str, default='AR')
+parser.add_argument('--input_size', type=int, default=1)
 parser.add_argument('--hidden_size', type=int, default=10)
 parser.add_argument('--num_units', type=int, default=4)
-parser.add_argument('--k', type=int, default=2)
+parser.add_argument('--kA', type=int, default=2)
+parser.add_argument('--rnn_cell', type=str, default='LSTM')
+parser.add_argument('--output_size', type=int, default=1)
 parser.add_argument('--lr', type=float, default=0.02)
 parser.add_argument('--weight_decay', type=float, default=0)
+parser.add_argument('--loadlast', action='store_true', default=False)
 
-
-args = vars(parser.parse_args())
+_args = parser.parse_args()
+args = vars(_args)
 torch.cuda.manual_seed(111)
 
 log_dir = 'logs'
+device = torch.device('cuda') if args['cuda'] else torch.device('cpu')
 
 loss_function = nn.MSELoss()
 
@@ -47,7 +53,6 @@ def train_model(model, epochs, train_data, val_data=None):
             pred = model(past)
             loss = loss_function(present, pred)
 
-            
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -85,24 +90,23 @@ def test_model(model, val_data):
     mean_error = mean_error/len(val_data)
     return mean_error
 
+if args['model'] == 'AR':
+    model = ARModel(p = args["p"])
+elif args['model'] == 'MLP':
+    model = MLPModel(torch.device('cpu'), 
+                    args['p'], args['hidden_size'])
+    pytorch_total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    print(f"aantal parameters: {pytorch_total_params}")
+elif args['model'] == 'RIM':
+    model = RIMModel(_args).to(device)
+    pytorch_total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    print(f"aantal parameters: {pytorch_total_params}")
+
 def main():
     fullfile = "data/COVID-19_aantallen_nationale_per_dag.csv"
     trainset = COVID19Daily(fullfile, args["p"])
     trainloader = DataLoader(trainset, batch_size=32, shuffle=True)
 
-    if args['model'] == 'AR':
-        model = ARModel(p = args["p"])
-    elif args['model'] == 'MLP':
-        model = MLPModel(torch.device('cpu'), 
-                        args['p'], args['hidden_size'])
-        pytorch_total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-        print(f"aantal parameters: {pytorch_total_params}")
-    else:
-        model = RIMModel(torch.device('cpu'), 
-                        args['hidden_size'], args['num_units'], args['k'], 'LSTM')
-        pytorch_total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-        print(f"aantal parameters: {pytorch_total_params}")
-    
     train_model(model, args['epochs'], trainloader, trainloader)
 
     error = test_model(model, trainloader)

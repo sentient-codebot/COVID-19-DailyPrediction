@@ -3,28 +3,37 @@ import torch.nn as nn
 from RIM import RIMCell
 
 class RIMModel(nn.Module):
-    def __init__(self, device, hidden_size, num_units, k, rnn_cell):
+    def __init__(self, args):
         super().__init__()
-        self.rim_cell = RIMCell(device, 1, hidden_size, num_units, k, rnn_cell)
-        self.device = device
-        self.num_units = num_units
-        self.hidden_size = hidden_size
-        self.rnn_cell = rnn_cell
-        self.out_linear = nn.Linear(hidden_size*num_units, 1) # output linear layer
+        self.device = torch.device('cuda') if args.cuda else torch.device('cpu')
+        self.cuda = True if args.cuda else False
+        self.input_size = args.input_size
+        self.hidden_size = args.hidden_size
+        self.num_units = args.num_units
+        self.kA = args.kA
+        self.rnn_cell = args.rnn_cell
+        self.output_size = args.output_size
+        self.RIMModel = RIMCell(self.device, self.input_size, self.hidden_size, self.num_units, self.kA, self.rnn_cell)
 
-    def forward(self, past):
-        '''past (BATCH, p)'''
-        past_split = torch.split(past, 1, 1)
-        hs = torch.randn(past.shape[0], self.num_units, self.hidden_size).to(self.device)
-        cs = None 
+        self.Output = nn.Linear(self.hidden_size * self.num_units, self.output_size) # NOTE: really? use all hidden_states or only activated?
+
+    def forward(self, seq_past):
+        '''
+        seq_past (BATCHSIZE, SEGMENT_LENGTH)
+        '''
+        if self.cuda:
+            seq_past = seq_past.to(self.device)
+
+        hs = torch.randn(seq_past.size(0), self.num_units, self.hidden_size).to(self.device)
+        cs = None
         if self.rnn_cell == 'LSTM':
-            cs = torch.randn(past.shape[0], self.num_units, self.hidden_size).to(self.device)
+            cs = torch.randn(seq_past.size(0), self.num_units, self.hidden_size).to(self.device)
+        seq_split = torch.split(seq_past, self.input_size, 1)
+        for seq_entry in seq_split:
+            hs, cs, _ = self.RIMModel(seq_entry, hs, cs)
+        predicted = self.Output(hs.reshape(seq_past.size(0),-1))
 
-        for past_step in past_split:
-            hs, cs = self.rim_cell(past_step, hs, cs)
-        pred = self.out_linear(hs.reshape(past.shape[0], -1))
-
-        return pred
+        return predicted
 
 class MLPModel(nn.Module):
     '''

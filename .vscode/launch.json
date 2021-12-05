@@ -67,28 +67,30 @@
             ]
         },
         {
-            "name": "LSTM RIM on cpu",
+            "name": "Train: GRU RIM (cpu)",
             "type": "python",
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
             "args": [
                 "--p",
-                "10",
+                "14",
                 "--epochs",
-                "150",
+                "100",
                 "--model",
                 "RIM",
                 "--hidden_size",
-                "1",
+                "10",
                 "--num_units",
-                "1",
-                "--k",
-                "1",
+                "4",
+                "--kA",
+                "2",
                 "--lr",
-                "0.01",
+                "0.001",
                 "--weight_decay",
-                "0.05"
+                "0.05",
+                "--rnn_cell",
+                "GRU"
             ]
         }
     ]
